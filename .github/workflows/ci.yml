@@ -33,11 +33,14 @@ jobs:
       - name: Run tests without code signing
         run: |
           set -o pipefail
+          test_arch="$(uname -m)"
           xcodebuild \
             -project Codex-Quota.xcodeproj \
             -scheme Codex-Quota \
             -configuration Debug \
-            -destination 'platform=macOS' \
+            -destination "platform=macOS,arch=${test_arch}" \
             -derivedDataPath .build/CI \
             CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=YES \
+            ARCHS="${test_arch}" \
             test

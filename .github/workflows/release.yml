@@ -1,0 +1,241 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag to publish (for example, v2.1.0)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Sign, notarize, and publish
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      TAG: ${{ inputs.tag }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      DEVELOPER_ID_P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+      DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+      HOST_PROVISIONING_PROFILE_BASE64: ${{ secrets.HOST_PROVISIONING_PROFILE_BASE64 }}
+      WIDGET_PROVISIONING_PROFILE_BASE64: ${{ secrets.WIDGET_PROVISIONING_PROFILE_BASE64 }}
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Validate release inputs and secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(awk '/MARKETING_VERSION:/ { print $2; exit }' project.yml)"
+          if [[ "${TAG}" != "v${version}" ]]; then
+            echo "Tag ${TAG} does not match MARKETING_VERSION ${version}." >&2
+            exit 1
+          fi
+
+          required=(
+            APPLE_TEAM_ID
+            DEVELOPER_ID_P12_BASE64
+            DEVELOPER_ID_P12_PASSWORD
+            ASC_KEY_ID
+            ASC_ISSUER_ID
+            ASC_API_KEY_P8
+          )
+          for variable in "${required[@]}"; do
+            if [[ -z "${!variable}" ]]; then
+              echo "Missing required release secret: ${variable}" >&2
+              exit 1
+            fi
+          done
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project and run tests
+        run: |
+          set -o pipefail
+          test_arch="$(uname -m)"
+          xcodegen generate
+          xcodebuild \
+            -project Codex-Quota.xcodeproj \
+            -scheme Codex-Quota \
+            -configuration Debug \
+            -destination "platform=macOS,arch=${test_arch}" \
+            -derivedDataPath .build/ReleaseCI \
+            CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=YES \
+            ARCHS="${test_arch}" \
+            test
+
+      - name: Import Developer ID certificate
+        shell: bash
+        run: |
+          set -euo pipefail
+          keychain_path="${RUNNER_TEMP}/codex-quota-signing.keychain-db"
+          keychain_password="$(openssl rand -hex 24)"
+          certificate_path="${RUNNER_TEMP}/developer-id.p12"
+
+          printf '%s' "${DEVELOPER_ID_P12_BASE64}" | base64 -D > "${certificate_path}"
+          security create-keychain -p "${keychain_password}" "${keychain_path}"
+          security set-keychain-settings -lut 21600 "${keychain_path}"
+          security unlock-keychain -p "${keychain_password}" "${keychain_path}"
+          security import "${certificate_path}" \
+            -P "${DEVELOPER_ID_P12_PASSWORD}" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "${keychain_path}"
+          security set-key-partition-list \
+            -S apple-tool:,apple: \
+            -s \
+            -k "${keychain_password}" \
+            "${keychain_path}"
+          security list-keychains -d user -s \
+            "${keychain_path}" \
+            "${HOME}/Library/Keychains/login.keychain-db"
+
+          echo "KEYCHAIN_PATH=${keychain_path}" >> "${GITHUB_ENV}"
+
+      - name: Install provisioning profiles
+        shell: bash
+        run: |
+          set -euo pipefail
+          profile_dir="${HOME}/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "${profile_dir}"
+
+          install_profile() {
+            local encoded="$1"
+            local label="$2"
+            [[ -n "${encoded}" ]] || return 0
+
+            local source_path="${RUNNER_TEMP}/${label}.provisionprofile"
+            local plist_path="${RUNNER_TEMP}/${label}.plist"
+            printf '%s' "${encoded}" | base64 -D > "${source_path}"
+            security cms -D -i "${source_path}" > "${plist_path}"
+            local uuid
+            uuid="$(/usr/libexec/PlistBuddy -c 'Print :UUID' "${plist_path}")"
+            cp "${source_path}" "${profile_dir}/${uuid}.provisionprofile"
+          }
+
+          install_profile "${HOST_PROVISIONING_PROFILE_BASE64}" host
+          install_profile "${WIDGET_PROVISIONING_PROFILE_BASE64}" widget
+
+      - name: Write App Store Connect API key
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_path="${RUNNER_TEMP}/AuthKey_${ASC_KEY_ID}.p8"
+          printf '%s' "${ASC_API_KEY_P8}" > "${key_path}"
+          chmod 600 "${key_path}"
+          echo "ASC_KEY_PATH=${key_path}" >> "${GITHUB_ENV}"
+
+      - name: Archive Developer ID build
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive_path="${RUNNER_TEMP}/Codex-Quota.xcarchive"
+          xcodebuild \
+            -project Codex-Quota.xcodeproj \
+            -scheme Codex-Quota \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -archivePath "${archive_path}" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "${ASC_KEY_PATH}" \
+            -authenticationKeyID "${ASC_KEY_ID}" \
+            -authenticationKeyIssuerID "${ASC_ISSUER_ID}" \
+            DEVELOPMENT_TEAM="${APPLE_TEAM_ID}" \
+            CODE_SIGN_STYLE=Automatic \
+            CODE_SIGN_IDENTITY='Developer ID Application' \
+            archive
+
+          cat > "${RUNNER_TEMP}/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>developer-id</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>teamID</key>
+            <string>${APPLE_TEAM_ID}</string>
+          </dict>
+          </plist>
+          PLIST
+
+          xcodebuild \
+            -exportArchive \
+            -archivePath "${archive_path}" \
+            -exportPath "${RUNNER_TEMP}/export" \
+            -exportOptionsPlist "${RUNNER_TEMP}/ExportOptions.plist" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "${ASC_KEY_PATH}" \
+            -authenticationKeyID "${ASC_KEY_ID}" \
+            -authenticationKeyIssuerID "${ASC_ISSUER_ID}"
+
+      - name: Package and notarize release
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          APP_PATH="${RUNNER_TEMP}/export/Codex Quota.app" \
+          SKIP_BUILD=1 \
+          RELEASE_VERSION="${version}" \
+          REQUIRE_NOTARIZED=1 \
+          NOTARY_KEY="${ASC_KEY_PATH}" \
+          NOTARY_KEY_ID="${ASC_KEY_ID}" \
+          NOTARY_ISSUER="${ASC_ISSUER_ID}" \
+          OUTPUT_DIR="${GITHUB_WORKSPACE}/dist" \
+          ./scripts/package-release.sh
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Codex-Quota-${{ inputs.tag }}
+          path: |
+            dist/Codex-Quota-macOS-universal.dmg
+            dist/Codex-Quota-macOS-universal.zip
+            dist/SHA256SUMS
+          if-no-files-found: error
+
+      - name: Publish GitHub Release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          assets=(
+            dist/Codex-Quota-macOS-universal.dmg
+            dist/Codex-Quota-macOS-universal.zip
+            dist/SHA256SUMS
+          )
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release upload "${TAG}" "${assets[@]}" --clobber
+          else
+            gh release create "${TAG}" "${assets[@]}" \
+              --verify-tag \
+              --title "Codex Quota ${TAG#v}" \
+              --generate-notes
+          fi
+
+      - name: Remove temporary signing keychain
+        if: always()
+        shell: bash
+        run: |
+          if [[ -n "${KEYCHAIN_PATH:-}" && -f "${KEYCHAIN_PATH}" ]]; then
+            security delete-keychain "${KEYCHAIN_PATH}" || true
+          fi

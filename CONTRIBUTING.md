@@ -46,9 +46,11 @@ xcodebuild \
   -project Codex-Quota.xcodeproj \
   -scheme Codex-Quota \
   -configuration Debug \
-  -destination 'platform=macOS' \
+  -destination "platform=macOS,arch=$(uname -m)" \
   -derivedDataPath .build/CI \
   CODE_SIGNING_ALLOWED=NO \
+  ONLY_ACTIVE_ARCH=YES \
+  ARCHS="$(uname -m)" \
   test
 ```
 
@@ -57,6 +59,8 @@ For changes that affect signing, App Groups, WidgetKit registration, or installa
 ```bash
 ./scripts/build-install.sh
 ```
+
+Changes to distribution or packaging should also run `./scripts/package-release.sh` and follow [docs/RELEASING.md](docs/RELEASING.md). Public releases must state their actual signing and notarization status accurately.
 
 Parser changes should include focused regression tests using synthetic JSON fixtures. UI changes should be checked in both Small and Medium widget sizes, in light and dark appearances, and with macOS monochrome widget rendering.
 

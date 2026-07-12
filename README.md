@@ -12,6 +12,8 @@
 <p align="center">
   <a href="README.zh-CN.md">简体中文</a>
   ·
+  <a href="https://github.com/Zamisku/Codex-Quota/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/Zamisku/Codex-Quota?display_name=tag&sort=semver"></a>
+  ·
   <a href="https://github.com/Zamisku/Codex-Quota/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Zamisku/Codex-Quota/actions/workflows/ci.yml/badge.svg"></a>
   <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple">
   <img alt="Swift 5" src="https://img.shields.io/badge/Swift-5-F05138?logo=swift&logoColor=white">
@@ -19,7 +21,7 @@
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick start</a>
+  <a href="#install">Install</a>
   ·
   <a href="#privacy-model">Privacy</a>
   ·
@@ -57,21 +59,27 @@ Small shows the one number you need most. Medium adds weekly quota, reset credit
 ## Requirements
 
 - macOS 14 Sonoma or later
-- Xcode 15 or later
-- [XcodeGen](https://github.com/yonaskolb/XcodeGen)
-- An Apple Development signing identity for local installation
 - Codex Desktop already signed in, with `${CODEX_HOME:-~/.codex}/auth.json` available
+- No Xcode, XcodeGen, Apple Developer account, or source checkout required
 
-## Quick start
+## Install
+
+### Download the app
+
+[Download the latest DMG](https://github.com/Zamisku/Codex-Quota/releases/latest/download/Codex-Quota-macOS-universal.dmg), open it, and drag **Codex Quota** into **Applications**. The release is Universal and runs natively on Apple silicon and Intel Macs.
+
+> [!NOTE]
+> The current prebuilt release is Apple Development-signed but not yet notarized. On first launch from Finder, Control-click **Codex Quota**, choose **Open**, then confirm **Open** once. This limitation disappears when the maintainer's Developer ID and notarization secrets are configured.
+
+### One-command install or update
 
 ```bash
-git clone git@github.com:Zamisku/Codex-Quota.git
-cd Codex-Quota
-brew install xcodegen
-./scripts/build-install.sh
+curl -fsSL https://raw.githubusercontent.com/Zamisku/Codex-Quota/main/scripts/install-release.sh | /bin/zsh
 ```
 
-The install script regenerates the Xcode project, runs tests, creates a signed Universal Release build, validates the host and widget entitlements, backs up an existing installation, removes stale duplicate widget registrations, installs to `/Applications/Codex Quota.app`, and refreshes WidgetKit.
+This path requires only standard macOS tools. It downloads the latest GitHub Release ZIP, verifies its published SHA-256, code signature, host and widget Bundle IDs, backs up an existing installation, installs to `/Applications/Codex Quota.app`, registers the widget, and launches the app. Review the [installer source](scripts/install-release.sh) before running it if desired.
+
+### First run
 
 After the host app reports that a sanitized snapshot has been shared:
 
@@ -79,16 +87,6 @@ After the host app reports that a sanitized snapshot has been shared:
 2. Choose **Edit Widgets**.
 3. Search for **Codex Quota**.
 4. Add the Small or Medium widget.
-
-## Code signing
-
-The checked-in project is configured for development Team `X9MB8SQZHF` and App Group `X9MB8SQZHF.com.Zamisku.CodexQuota.shared`. Contributors using another Apple Developer team must update all of the following together:
-
-- `DEVELOPMENT_TEAM` and bundle identifiers in `project.yml`
-- The App Group in both entitlement files
-- The App Group identifier in `Core/SharedSnapshotStore.swift`
-
-Then regenerate the project with `xcodegen generate`. See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow.
 
 ## Privacy model
 
@@ -116,12 +114,16 @@ The host reads the local Codex authentication file because macOS does not grant 
 | `Core/` | Authentication loading, fixed-endpoint networking, defensive parsing, shared snapshot model |
 | `Codex-QuotaTests/` | Parser and stale-snapshot regression tests |
 | `project.yml` | XcodeGen source of truth for targets, signing, capabilities, and schemes |
-| `scripts/build-install.sh` | Tested local build, verification, installation, and widget registration workflow |
+| `scripts/install-release.sh` | Xcode-free verified installer for the latest GitHub Release |
+| `scripts/package-release.sh` | Universal ZIP/DMG packaging, validation, and optional notarization |
+| `scripts/build-install.sh` | Contributor-only local build and deployment workflow |
 | `scripts/render-promo.swift` | Reproducible AppKit compositor for README and GitHub promotional artwork |
 
 More detail is available in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Development
+
+End users do not need this section. Contributors need Xcode 15 or later, [XcodeGen](https://github.com/yonaskolb/XcodeGen), and their own signing configuration for WidgetKit/App Group testing. See [CONTRIBUTING.md](CONTRIBUTING.md) before changing signing identifiers.
 
 Generate the project:
 
@@ -136,19 +138,23 @@ xcodebuild \
   -project Codex-Quota.xcodeproj \
   -scheme Codex-Quota \
   -configuration Debug \
-  -destination 'platform=macOS' \
+  -destination "platform=macOS,arch=$(uname -m)" \
   -derivedDataPath .build/CI \
   CODE_SIGNING_ALLOWED=NO \
+  ONLY_ACTIVE_ARCH=YES \
+  ARCHS="$(uname -m)" \
   test
 ```
 
 For a signed local Release build and installation, use `./scripts/build-install.sh`.
 
+Release maintainers should follow [docs/RELEASING.md](docs/RELEASING.md).
+
 ## Known limitations
 
 - WidgetKit controls refresh scheduling; exact refresh times are not guaranteed.
 - Quota response fields may change because the upstream endpoints are not public API contracts.
-- The repository does not currently publish a notarized binary. Local builds use Apple Development signing and are not suitable for third-party distribution.
+- The current prebuilt release is not notarized, so Finder requires the one-time Control-click **Open** flow. The verified command-line installer avoids any Xcode workflow while production notarization is being configured.
 - Visual screenshots cannot establish full VoiceOver, keyboard, or Dynamic Type compliance; accessibility improvements are welcome.
 
 ## Community and support

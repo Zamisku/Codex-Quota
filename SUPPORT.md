@@ -11,8 +11,8 @@
 1. Confirm macOS 14 or later is installed.
 2. Confirm Codex Desktop is signed in.
 3. Launch `/Applications/Codex Quota.app` and use **Check and refresh**.
-4. Re-run `./scripts/build-install.sh` if the widget still shows an older layout.
-5. Confirm the host app and widget use the same signing team and App Group.
+4. Run the one-command installer from the README to reinstall the latest prebuilt release if the widget still shows an older layout.
+5. If Finder blocks the current unnotarized build, Control-click the app, choose **Open**, and confirm once.
 6. Search existing issues.
 
 Include the following in a bug report:

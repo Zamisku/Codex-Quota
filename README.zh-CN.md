@@ -12,6 +12,8 @@
 <p align="center">
   <a href="README.md">English</a>
   ·
+  <a href="https://github.com/Zamisku/Codex-Quota/releases/latest"><img alt="最新版本" src="https://img.shields.io/github/v/release/Zamisku/Codex-Quota?display_name=tag&sort=semver"></a>
+  ·
   <a href="https://github.com/Zamisku/Codex-Quota/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Zamisku/Codex-Quota/actions/workflows/ci.yml/badge.svg"></a>
   <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple">
   <img alt="Swift 5" src="https://img.shields.io/badge/Swift-5-F05138?logo=swift&logoColor=white">
@@ -19,7 +21,7 @@
 </p>
 
 <p align="center">
-  <a href="#快速开始">快速开始</a>
+  <a href="#安装">安装</a>
   ·
   <a href="#隐私边界">隐私说明</a>
   ·
@@ -57,21 +59,27 @@ Small 只保留最需要关注的数字；Medium 进一步展示每周额度、r
 ## 环境要求
 
 - macOS 14 Sonoma 或更新版本
-- Xcode 15 或更新版本
-- [XcodeGen](https://github.com/yonaskolb/XcodeGen)
-- 用于本机安装的 Apple Development 签名身份
 - Codex Desktop 已登录，并存在 `${CODEX_HOME:-~/.codex}/auth.json`
+- 普通用户不需要 Xcode、XcodeGen、Apple Developer 账号或下载源码
 
-## 快速开始
+## 安装
+
+### 下载应用
+
+[下载最新版 DMG](https://github.com/Zamisku/Codex-Quota/releases/latest/download/Codex-Quota-macOS-universal.dmg)，打开后把 **Codex Quota** 拖入 **Applications（应用程序）**。发行包是 Universal 架构，可原生运行于 Apple 芯片和 Intel Mac。
+
+> [!NOTE]
+> 当前预构建版本使用 Apple Development 签名，但尚未完成 Apple 公证。首次通过 Finder 启动时，请按住 Control 点击 **Codex Quota**，选择“打开”，再确认一次“打开”。维护者配置 Developer ID 与公证密钥后，这一步将不再需要。
+
+### 一行安装或更新
 
 ```bash
-git clone git@github.com:Zamisku/Codex-Quota.git
-cd Codex-Quota
-brew install xcodegen
-./scripts/build-install.sh
+curl -fsSL https://raw.githubusercontent.com/Zamisku/Codex-Quota/main/scripts/install-release.sh | /bin/zsh
 ```
 
-安装脚本会重新生成 Xcode 工程、运行测试、构建并校验 Universal Release、备份旧版本、清理重复的小组件注册、安装到 `/Applications/Codex Quota.app`，然后刷新 WidgetKit。
+这条命令只使用 macOS 自带工具：下载 GitHub 最新 Release ZIP，核验公开的 SHA-256、代码签名以及宿主和 Widget Bundle ID，备份旧版本，安装到 `/Applications/Codex Quota.app`，注册小组件并启动应用。执行前也可以先阅读[安装脚本源码](scripts/install-release.sh)。
+
+### 首次使用
 
 宿主应用显示“脱敏快照已共享”后：
 
@@ -79,16 +87,6 @@ brew install xcodegen
 2. 选择“编辑小组件”。
 3. 搜索“Codex Quota”。
 4. 添加 Small 或 Medium 尺寸。
-
-## 代码签名
-
-仓库当前配置使用开发团队 `X9MB8SQZHF` 和 App Group `X9MB8SQZHF.com.Zamisku.CodexQuota.shared`。使用其他 Apple Developer Team 时，需要同时修改：
-
-- `project.yml` 中的 `DEVELOPMENT_TEAM` 与 Bundle ID
-- 两个 entitlement 文件中的 App Group
-- `Core/SharedSnapshotStore.swift` 中的 App Group 标识
-
-修改后运行 `xcodegen generate`。完整开发流程见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 隐私边界
 
@@ -116,12 +114,16 @@ chatgpt.com 上的固定 HTTPS 额度端点
 | `Core/` | 登录读取、固定端点网络请求、防御性解析和共享模型 |
 | `Codex-QuotaTests/` | 解析器与旧快照逻辑回归测试 |
 | `project.yml` | XcodeGen 工程、Target、签名、Capability 与 Scheme 的源文件 |
-| `scripts/build-install.sh` | 本机构建、验证、安装和小组件注册流程 |
+| `scripts/install-release.sh` | 无需 Xcode、带完整校验的 GitHub Release 安装脚本 |
+| `scripts/package-release.sh` | Universal ZIP/DMG 打包、验证与可选公证流程 |
+| `scripts/build-install.sh` | 仅供贡献者使用的本机构建与部署流程 |
 | `scripts/render-promo.swift` | 可复现生成 README 与 GitHub 宣传素材的 AppKit 合成脚本 |
 
 架构细节见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
 
 ## 开发
+
+普通用户无需阅读本节。贡献者需要 Xcode 15 或更新版本、[XcodeGen](https://github.com/yonaskolb/XcodeGen)，并在测试 WidgetKit/App Group 时使用自己的签名配置。修改签名标识前请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 生成工程：
 
@@ -136,19 +138,23 @@ xcodebuild \
   -project Codex-Quota.xcodeproj \
   -scheme Codex-Quota \
   -configuration Debug \
-  -destination 'platform=macOS' \
+  -destination "platform=macOS,arch=$(uname -m)" \
   -derivedDataPath .build/CI \
   CODE_SIGNING_ALLOWED=NO \
+  ONLY_ACTIVE_ARCH=YES \
+  ARCHS="$(uname -m)" \
   test
 ```
 
 需要本机签名的 Release 构建与安装时，运行 `./scripts/build-install.sh`。
 
+发行维护者请遵循 [docs/RELEASING.md](docs/RELEASING.md)。
+
 ## 已知限制
 
 - 小组件刷新时间由 WidgetKit 调度，不能保证精确到某一分钟。
 - 上游额度端点不是公开 API，响应字段可能改变。
-- 仓库目前不发布经过公证的二进制文件；Apple Development 签名只适合本机开发安装。
+- 当前预构建发行包尚未公证，因此 Finder 首次启动需要按住 Control 点击并选择“打开”。带校验的一行安装路径不需要任何 Xcode 流程，正式公证仍在配置中。
 - 截图只能验证可见布局，不能证明 VoiceOver、键盘和所有辅助功能设置均完全合规。
 
 ## 社区与支持
