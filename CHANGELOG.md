@@ -6,9 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-### Added
-
-- GitHub Actions CI, issue forms, pull request template, security policy, contribution guide, support guide, and bilingual project documentation.
+No user-facing changes yet.
 
 ## [2.0.0] - 2026-07-13
 
@@ -20,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Optional launch-at-login support.
 - Defensive quota response parser with regression tests.
 - Signed Universal Release build and local installation workflow.
+- GitHub Actions CI, issue forms, pull request template, security policy, contribution guide, support guide, and bilingual project documentation.
 
 ### Changed
 
