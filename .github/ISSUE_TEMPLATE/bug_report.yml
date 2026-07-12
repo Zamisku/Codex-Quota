@@ -1,0 +1,79 @@
+name: Bug report
+description: Report a reproducible Codex Quota problem using sanitized information.
+title: "[Bug]: "
+labels:
+  - bug
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Do not attach `auth.json`, access tokens, account IDs, raw responses, prompts, or unrelated system logs.
+
+  - type: input
+    id: version
+    attributes:
+      label: Codex Quota version
+      description: Include both marketing version and build number from the installed app.
+      placeholder: 2.0.0 (Build 3)
+    validations:
+      required: true
+
+  - type: input
+    id: macos
+    attributes:
+      label: macOS and Mac
+      placeholder: macOS 15.5, Apple silicon
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected surface
+      options:
+        - Host app
+        - Menu bar
+        - Small widget
+        - Medium widget
+        - Build or installation script
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Explain the expected and actual behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Launch ...
+        2. Select ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized evidence
+      description: Add minimal logs or screenshots only after removing personal and authentication data.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Safety checks
+      options:
+        - label: I searched existing issues for duplicates.
+          required: true
+        - label: I removed tokens, account IDs, raw responses, prompts, and personal data.
+          required: true
+        - label: This is not a private security vulnerability.
+          required: true

@@ -1,0 +1,27 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+.build/
+DerivedData/
+build/
+dist/
+*.app
+*.dSYM
+*.xcarchive
+*.xcresult
+*.zip
+*.xcuserstate
+xcuserdata/
+Codex-Quota.xcodeproj/project.xcworkspace/xcuserdata/
+Codex-Quota.xcodeproj/xcuserdata/
+.swiftpm/
+.idea/
+
+# Local signing and authentication material
+*.cer
+*.key
+*.mobileprovision
+*.p12
+auth.json
+local.xcconfig

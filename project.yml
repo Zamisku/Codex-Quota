@@ -1,0 +1,143 @@
+name: Codex-Quota
+
+options:
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    SWIFT_VERSION: "5.0"
+    ONLY_ACTIVE_ARCH: NO
+    ARCHS: "$(ARCHS_STANDARD)"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: X9MB8SQZHF
+    ENABLE_HARDENED_RUNTIME: YES
+    CURRENT_PROJECT_VERSION: 3
+    MARKETING_VERSION: 2.0.0
+
+targets:
+  Codex-Quota:
+    type: application
+    platform: macOS
+    sources:
+      - path: Codex-Quota
+        excludes:
+          - Info.plist
+          - Codex-Quota.entitlements
+          - Assets.xcassets
+      - path: Core
+      - path: Codex-Quota/Assets.xcassets
+        buildPhase: resources
+      - path: LICENSE
+        buildPhase: resources
+      - path: NOTICE
+        buildPhase: resources
+      - path: THIRD_PARTY_NOTICES.md
+        buildPhase: resources
+    info:
+      path: Codex-Quota/Info.plist
+      properties:
+        CFBundleDisplayName: Codex Quota
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        CFBundleURLTypes:
+          - CFBundleURLName: com.Zamisku.Codex-Quota
+            CFBundleURLSchemes:
+              - codexquota
+        LSApplicationCategoryType: public.app-category.utilities
+        LSMinimumSystemVersion: "14.0"
+        NSHighResolutionCapable: true
+    entitlements:
+      path: Codex-Quota/Codex-Quota.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - X9MB8SQZHF.com.Zamisku.CodexQuota.shared
+    settings:
+      base:
+        PRODUCT_NAME: "Codex Quota"
+        PRODUCT_BUNDLE_IDENTIFIER: com.Zamisku.Codex-Quota
+        ENABLE_APP_SANDBOX: NO
+        REGISTER_APP_GROUPS: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
+    dependencies:
+      - target: CodexQuotaWidgetExtension
+        embed: true
+      - sdk: ServiceManagement.framework
+      - sdk: SwiftUI.framework
+      - sdk: WidgetKit.framework
+
+  CodexQuotaWidgetExtension:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: CodexQuotaWidget
+        excludes:
+          - Info.plist
+          - CodexQuotaWidget.entitlements
+          - Assets.xcassets
+      - path: Core/Models.swift
+      - path: Core/SharedSnapshotStore.swift
+      - path: CodexQuotaWidget/Assets.xcassets
+        buildPhase: resources
+    info:
+      path: CodexQuotaWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Codex Quota
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: CodexQuotaWidget/CodexQuotaWidget.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - X9MB8SQZHF.com.Zamisku.CodexQuota.shared
+    settings:
+      base:
+        PRODUCT_NAME: CodexQuotaWidgetExtension
+        PRODUCT_BUNDLE_IDENTIFIER: com.Zamisku.Codex-Quota.widget
+        APPLICATION_EXTENSION_API_ONLY: YES
+        ENABLE_APP_SANDBOX: YES
+        REGISTER_APP_GROUPS: YES
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME: WidgetBackground
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks"
+        SKIP_INSTALL: YES
+    dependencies:
+      - sdk: SwiftUI.framework
+      - sdk: WidgetKit.framework
+
+  Codex-QuotaTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Codex-QuotaTests
+      - path: Core/Models.swift
+      - path: Core/QuotaResponseParser.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.Zamisku.Codex-Quota.tests
+        GENERATE_INFOPLIST_FILE: YES
+        ENABLE_APP_SANDBOX: NO
+
+schemes:
+  Codex-Quota:
+    build:
+      targets:
+        Codex-Quota: all
+        CodexQuotaWidgetExtension: all
+        Codex-QuotaTests: [test]
+    run:
+      config: Debug
+      executable: Codex-Quota
+    test:
+      config: Debug
+      targets:
+        - Codex-QuotaTests
+    archive:
+      config: Release

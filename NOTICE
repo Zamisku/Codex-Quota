@@ -1,0 +1,8 @@
+Codex Quota
+Copyright 2026 Zamisku and Codex Quota contributors
+
+This product is licensed under the Apache License, Version 2.0.
+
+It includes a new Swift and WidgetKit implementation informed by ideas from
+the MIT-licensed Quota Float project. See THIRD_PARTY_NOTICES.md for the
+applicable attribution and license text.
