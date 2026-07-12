@@ -1,11 +1,12 @@
 # Codex Quota
 
 <p align="center">
-  <img src="Codex-Quota/Assets.xcassets/AppIcon.appiconset/icon_512x512.png" width="112" alt="Codex Quota app icon">
+  <img src="docs/assets/hero-banner.png" width="1200" alt="Codex Quota native macOS quota monitor with Small and Medium widgets">
 </p>
 
 <p align="center">
-  A privacy-conscious native macOS menu bar app and WidgetKit extension for monitoring local Codex quota.
+  <strong>Quota at a glance. Privacy by design.</strong><br>
+  A native macOS menu bar companion and WidgetKit dashboard for local Codex quota.
 </p>
 
 <p align="center">
@@ -18,15 +19,21 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/widget-medium.png" width="650" alt="Codex Quota medium widget">
+  <a href="#quick-start">Quick start</a>
+  ·
+  <a href="#privacy-model">Privacy</a>
+  ·
+  <a href="docs/ARCHITECTURE.md">Architecture</a>
+  ·
+  <a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
-Codex Quota reads the existing local Codex Desktop sign-in, fetches quota information from the same fixed ChatGPT compatibility endpoints, and shares only a sanitized snapshot with its sandboxed widget extension. It never stores the access token in the App Group.
+Codex Quota keeps your 5-hour and weekly quota visible before a limit interrupts your flow. The native SwiftUI host reads the existing local Codex Desktop sign-in, fetches quota information from fixed ChatGPT compatibility endpoints, and shares only a sanitized snapshot with its sandboxed widget extension. It never stores the access token in the App Group.
 
 > [!IMPORTANT]
 > Codex Quota is an unofficial community project and is not affiliated with or endorsed by OpenAI. The quota endpoints it relies on are internal compatibility endpoints, not a stable public API, and may change without notice.
 
-## Highlights
+## Why Codex Quota
 
 - Native SwiftUI menu bar app with Small and Medium WidgetKit widgets.
 - Displays 5-hour quota, weekly quota, reset time, plan, and reset credits when available.
@@ -36,6 +43,16 @@ Codex Quota reads the existing local Codex Desktop sign-in, fetches quota inform
 - Universal `arm64` and `x86_64` Release builds.
 - No analytics, telemetry, cookies, redirects, or third-party tracking.
 - The widget is sandboxed and cannot read `~/.codex` or make authenticated network requests.
+
+## Built for a glance
+
+<p align="center">
+  <img src="docs/assets/widget-small.png" width="300" alt="Codex Quota Small widget showing synthetic example quota data">
+  &nbsp;&nbsp;
+  <img src="docs/assets/widget-medium.png" width="600" alt="Codex Quota Medium widget showing synthetic example quota data">
+</p>
+
+Small shows the one number you need most. Medium adds weekly quota, reset credits, and the next reset time without turning the desktop into another dashboard. All preview values are synthetic and contain no account data.
 
 ## Requirements
 
@@ -100,6 +117,7 @@ The host reads the local Codex authentication file because macOS does not grant 
 | `Codex-QuotaTests/` | Parser and stale-snapshot regression tests |
 | `project.yml` | XcodeGen source of truth for targets, signing, capabilities, and schemes |
 | `scripts/build-install.sh` | Tested local build, verification, installation, and widget registration workflow |
+| `scripts/render-promo.swift` | Reproducible AppKit compositor for README and GitHub promotional artwork |
 
 More detail is available in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 

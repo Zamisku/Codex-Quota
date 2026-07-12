@@ -1,11 +1,12 @@
 # Codex Quota
 
 <p align="center">
-  <img src="Codex-Quota/Assets.xcassets/AppIcon.appiconset/icon_512x512.png" width="112" alt="Codex Quota 图标">
+  <img src="docs/assets/hero-banner-zh.png" width="1200" alt="Codex Quota 原生 macOS 额度监控应用及 Small、Medium 小组件">
 </p>
 
 <p align="center">
-  一个注重隐私的原生 macOS 菜单栏应用与 WidgetKit 小组件，用于查看本机 Codex 额度。
+  <strong>额度一目了然，隐私边界清晰。</strong><br>
+  用原生 macOS 菜单栏应用与 WidgetKit 小组件随时查看本机 Codex 额度。
 </p>
 
 <p align="center">
@@ -18,15 +19,21 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/widget-medium.png" width="650" alt="Codex Quota Medium 小组件">
+  <a href="#快速开始">快速开始</a>
+  ·
+  <a href="#隐私边界">隐私说明</a>
+  ·
+  <a href="docs/ARCHITECTURE.md">项目架构</a>
+  ·
+  <a href="CONTRIBUTING.md">参与贡献</a>
 </p>
 
-Codex Quota 读取 Codex Desktop 已有的本机登录状态，通过固定的 ChatGPT 兼容端点获取额度信息，再把不含令牌的脱敏快照共享给沙盒化的小组件扩展。访问令牌不会写入 App Group。
+Codex Quota 把 5 小时与每周额度放在桌面上一眼可见的位置，让你在限制打断工作流之前提前安排任务。原生 SwiftUI 宿主读取 Codex Desktop 已有的本机登录状态，通过固定的 ChatGPT 兼容端点获取额度信息，再把不含令牌的脱敏快照共享给沙盒化的小组件扩展。访问令牌不会写入 App Group。
 
 > [!IMPORTANT]
 > Codex Quota 是非官方社区项目，与 OpenAI 没有隶属或背书关系。项目使用的是内部兼容端点，并非稳定的公开 API，接口可能随时变化。
 
-## 功能亮点
+## 为什么选择 Codex Quota
 
 - 原生 SwiftUI 菜单栏应用，提供 Small 和 Medium 两种 WidgetKit 小组件。
 - 显示 5 小时额度、每周额度、重置时间、套餐和 reset credits（可用时）。
@@ -36,6 +43,16 @@ Codex Quota 读取 Codex Desktop 已有的本机登录状态，通过固定的 C
 - Release 同时支持 `arm64` 与 `x86_64`。
 - 不包含分析、遥测、Cookie、重定向或第三方跟踪。
 - Widget Extension 启用沙盒，不能读取 `~/.codex`，也不能发起带认证的网络请求。
+
+## 一眼掌握额度
+
+<p align="center">
+  <img src="docs/assets/widget-small.png" width="300" alt="使用合成示例额度数据的 Codex Quota Small 小组件">
+  &nbsp;&nbsp;
+  <img src="docs/assets/widget-medium.png" width="600" alt="使用合成示例额度数据的 Codex Quota Medium 小组件">
+</p>
+
+Small 只保留最需要关注的数字；Medium 进一步展示每周额度、reset credits 和下一次重置时间，同时避免把桌面变成复杂仪表盘。所有预览数值均为合成示例，不包含任何账号数据。
 
 ## 环境要求
 
@@ -100,6 +117,7 @@ chatgpt.com 上的固定 HTTPS 额度端点
 | `Codex-QuotaTests/` | 解析器与旧快照逻辑回归测试 |
 | `project.yml` | XcodeGen 工程、Target、签名、Capability 与 Scheme 的源文件 |
 | `scripts/build-install.sh` | 本机构建、验证、安装和小组件注册流程 |
+| `scripts/render-promo.swift` | 可复现生成 README 与 GitHub 宣传素材的 AppKit 合成脚本 |
 
 架构细节见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
 
