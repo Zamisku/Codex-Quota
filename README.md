@@ -65,6 +65,12 @@ Small shows the most time-sensitive quota currently returned by the service (wee
 
 ## Four themes, two ways to choose
 
+<p align="center">
+  <img src="docs/assets/theme-showcase.png" width="1200" alt="Codex Quota gallery showing real Medium previews of Crystal Glass, Full-card Aquarium, Dual-track Orbit, and Minimal Aurora">
+</p>
+
+The gallery is rendered from the same shared SwiftUI views used by WidgetKit, using synthetic 72% short-window and 84% weekly values. The surrounding artwork is promotional; the percentages, water level, orbit tracks, labels, and metrics are real project output.
+
 | Theme | Visual language |
 | --- | --- |
 | **Crystal Glass** | A refractive lens gauge with a precise central percentage; the default. |
@@ -73,6 +79,14 @@ Small shows the most time-sensitive quota currently returned by the service (wee
 | **Minimal Aurora** | Low-density typography, a progress band, and a softly shifting blue-green field. |
 
 Open **Widget appearance** beside “Add to Desktop” to preview every theme in real Small and Medium layouts. The original **Codex Quota** widget keeps its existing WidgetKit kind and follows this global theme, so installed widgets survive an upgrade. Add **Codex Quota · Custom** when one widget instance should follow the app or independently use any of the four themes.
+
+### Aquarium water-level semantics
+
+<p align="center">
+  <img src="docs/assets/aquarium-levels.png" width="1200" alt="Four real Small Aquarium widget previews at 84, 34, 15, and 0 percent remaining">
+</p>
+
+The Aquarium does not replace the exact number: it adds a full-card spatial cue. Above 35% the water is cyan-blue, 16–35% uses amber, and 15% or below uses coral red. At 0%, the tank visibly drains while the status text remains present.
 
 ## Requirements
 
@@ -137,6 +151,7 @@ The host reads the local Codex authentication file because macOS does not grant 
 | `scripts/package-release.sh` | Universal ZIP/DMG packaging, validation, and optional notarization |
 | `scripts/build-install.sh` | Contributor-only local build and deployment workflow |
 | `scripts/render-promo.swift` | Reproducible AppKit compositor for README and GitHub promotional artwork |
+| `scripts/render-theme-assets.sh` | Renders all four real SwiftUI themes into the bilingual gallery, water-level strip, and social preview |
 
 More detail is available in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
