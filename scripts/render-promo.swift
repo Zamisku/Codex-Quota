@@ -407,14 +407,14 @@ let english = PromoCopy(
     eyebrow: "OPEN SOURCE FOR macOS",
     tagline: "Quota at a glance. Privacy by design.",
     meta: "Native macOS · Menu bar · WidgetKit",
-    pills: ["Adaptive windows", "Desktop widgets", "Local-first"]
+    pills: ["4 visual themes", "Global + per-widget", "Local-first"]
 )
 
 let simplifiedChinese = PromoCopy(
     eyebrow: "开源 · 原生 macOS",
     tagline: "额度一目了然，隐私边界清晰。",
     meta: "原生 macOS · 菜单栏 · WidgetKit",
-    pills: ["额度窗口自适应", "桌面小组件", "本机优先"]
+    pills: ["四套视觉主题", "全局与单组件设置", "本机优先"]
 )
 
 try renderPromo(

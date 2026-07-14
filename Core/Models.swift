@@ -62,6 +62,25 @@ struct ProviderSnapshot: Codable, Equatable, Sendable {
         failure: nil
     )
 
+    static let themePreview = ProviderSnapshot(
+        plan: "PLUS",
+        shortWindow: UsageWindow(
+            remainingPercent: 72,
+            resetsAt: Date().addingTimeInterval(2.5 * 60 * 60),
+            windowSeconds: 18_000
+        ),
+        weeklyWindow: UsageWindow(
+            remainingPercent: 84,
+            resetsAt: Date().addingTimeInterval(4 * 86_400),
+            windowSeconds: 604_800
+        ),
+        resetCredits: 2,
+        resetCreditExpirations: [],
+        updatedAt: Date(),
+        status: .ok,
+        failure: nil
+    )
+
     /// The most time-sensitive quota window currently returned by the service.
     /// A restored short window automatically takes priority over the weekly window.
     var primaryWindow: UsageWindow? { shortWindow ?? weeklyWindow }

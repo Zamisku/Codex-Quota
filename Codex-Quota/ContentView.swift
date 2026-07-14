@@ -1,4 +1,5 @@
 import SwiftUI
+import WidgetKit
 
 private enum AppPalette {
     static let primaryText = Color(red: 0.08, green: 0.11, blue: 0.16)
@@ -12,7 +13,15 @@ enum ProjectLinks {
 }
 
 struct ContentView: View {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @ObservedObject var model: HostModel
+    @State private var selectedTheme: QuotaVisualTheme
+    @State private var showingThemeGallery = false
+
+    init(model: HostModel) {
+        self.model = model
+        _selectedTheme = State(initialValue: QuotaThemePreferences.globalTheme)
+    }
 
     var body: some View {
         ZStack {
@@ -44,8 +53,28 @@ struct ContentView: View {
                 statusCard
 
                 VStack(alignment: .leading, spacing: 10) {
-                    Label("添加到桌面", systemImage: "square.grid.2x2")
-                        .font(.headline)
+                    HStack {
+                        Label("添加到桌面", systemImage: "square.grid.2x2")
+                            .font(.headline)
+                        Spacer()
+                        Button {
+                            showingThemeGallery = true
+                        } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: selectedTheme.symbolName)
+                                Text(selectedTheme.displayName)
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 8, weight: .bold))
+                                    .opacity(0.58)
+                            }
+                            .font(.system(size: 10, weight: .semibold, design: .rounded))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .quotaGlassControl(in: Capsule(), opaque: reduceTransparency)
+                        }
+                        .buttonStyle(.plain)
+                        .help("预览并选择 Widget 的全局默认主题")
+                    }
                     Text("1. 在桌面空白处按住 Control 点击\n2. 选择“编辑小组件”\n3. 搜索“Codex Quota”并选择 Small 或 Medium")
                         .font(.system(size: 13, design: .rounded))
                         .foregroundStyle(AppPalette.secondaryText)
@@ -95,6 +124,28 @@ struct ContentView: View {
             .padding(28)
             .foregroundStyle(AppPalette.primaryText)
             .tint(AppPalette.accent)
+        }
+        .onAppear {
+            selectedTheme = QuotaThemePreferences.globalTheme
+        }
+        .sheet(isPresented: $showingThemeGallery) {
+            ThemeGalleryView(
+                selectedTheme: $selectedTheme,
+                snapshot: themePreviewSnapshot,
+                onSelect: applyTheme
+            )
+        }
+    }
+
+    private var themePreviewSnapshot: ProviderSnapshot {
+        guard let snapshot = model.snapshot, snapshot.hasUsageWindow else { return .themePreview }
+        return snapshot
+    }
+
+    private func applyTheme(_ theme: QuotaVisualTheme) {
+        QuotaThemePreferences.save(theme)
+        for kind in CodexQuotaWidgetKind.all {
+            WidgetCenter.shared.reloadTimelines(ofKind: kind)
         }
     }
 

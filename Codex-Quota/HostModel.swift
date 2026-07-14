@@ -72,7 +72,9 @@ final class HostModel: ObservableObject {
                 (previous?.shortWindow != nil) != (value.shortWindow != nil)
                 || (previous?.weeklyWindow != nil) != (value.weeklyWindow != nil)
             if forceWidgetReload || reloadIsDue || previous?.status != value.status || windowAvailabilityChanged {
-                WidgetCenter.shared.reloadTimelines(ofKind: CodexQuotaWidgetKind.value)
+                for kind in CodexQuotaWidgetKind.all {
+                    WidgetCenter.shared.reloadTimelines(ofKind: kind)
+                }
                 lastWidgetReloadAt = now
             }
         } catch {
@@ -105,10 +107,6 @@ final class HostModel: ObservableObject {
             notice = "无法更改登录启动设置；请先将应用安装到“应用程序”文件夹。"
         }
     }
-}
-
-enum CodexQuotaWidgetKind {
-    static let value = "com.Zamisku.Codex-Quota.quota"
 }
 
 private extension Optional where Wrapped == QuotaFailure {

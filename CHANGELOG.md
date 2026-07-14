@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 No user-facing changes yet.
 
+## [2.3.0] - 2026-07-14
+
+### Added
+
+- Added Crystal Glass, Full-card Aquarium, Dual-track Orbit, and Minimal Aurora widget themes with real Small and Medium previews in the host app.
+- Added a configurable `Codex Quota · Custom` widget whose individual instances can follow the app or override the global theme.
+- Added one-shot quota update animations, reduced-motion and reduced-transparency adaptations, themed failure states, and expanded VoiceOver descriptions.
+
+### Changed
+
+- Preserved the original widget kind as the globally themed option so installed widgets survive upgrades.
+- Refreshed bilingual documentation and promotional artwork with the new default Crystal Glass presentation.
+
 ## [2.2.0] - 2026-07-14
 
 ### Added
@@ -62,7 +75,8 @@ No user-facing changes yet.
 - Kept token access and authenticated networking out of the sandboxed widget extension.
 - Stored only a sanitized snapshot in the App Group.
 
-[Unreleased]: https://github.com/Zamisku/Codex-Quota/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/Zamisku/Codex-Quota/compare/v2.3.0...HEAD
+[2.3.0]: https://github.com/Zamisku/Codex-Quota/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/Zamisku/Codex-Quota/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/Zamisku/Codex-Quota/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/Zamisku/Codex-Quota/releases/tag/v2.0.0
