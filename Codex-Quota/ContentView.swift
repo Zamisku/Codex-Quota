@@ -7,6 +7,10 @@ private enum AppPalette {
     static let accent = Color(red: 0.12, green: 0.40, blue: 0.82)
 }
 
+enum ProjectLinks {
+    static let repository = URL(string: "https://github.com/Zamisku/Codex-Quota")!
+}
+
 struct ContentView: View {
     @ObservedObject var model: HostModel
 
@@ -74,6 +78,16 @@ struct ContentView: View {
                     .disabled(model.isLoading)
                 }
 
+                HStack(spacing: 7) {
+                    Image(systemName: "star.fill")
+                        .foregroundStyle(.yellow)
+                    Text("觉得 Codex Quota 有用？")
+                    Link("在 GitHub 点 Star 支持项目", destination: ProjectLinks.repository)
+                        .fontWeight(.semibold)
+                }
+                .font(.caption)
+                .foregroundStyle(AppPalette.secondaryText)
+
                 Text(model.notice ?? "WidgetKit 的刷新由系统调度，宿主更新快照后会请求刷新桌面组件。")
                     .font(.caption)
                     .foregroundStyle(model.notice == nil ? AppPalette.secondaryText : AppPalette.warningText)
@@ -93,8 +107,8 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(statusTitle)
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                if let short = model.snapshot?.shortWindow {
-                    Text("5 小时剩余 \(Int(short.remainingPercent.rounded()))% · 周剩余 \(weeklyText)")
+                if let usageSummary {
+                    Text(usageSummary)
                         .font(.system(size: 12, design: .rounded))
                         .foregroundStyle(AppPalette.secondaryText)
                 } else {
@@ -114,8 +128,21 @@ struct ContentView: View {
         .background(.white.opacity(0.5), in: RoundedRectangle(cornerRadius: 18))
     }
 
-    private var weeklyText: String {
-        model.snapshot?.weeklyWindow.map { "\(Int($0.remainingPercent.rounded()))%" } ?? "—"
+    private var usageSummary: String? {
+        switch (model.snapshot?.shortWindow, model.snapshot?.weeklyWindow) {
+        case let (.some(short), .some(weekly)):
+            return "5 小时剩余 \(percent(short)) · 周剩余 \(percent(weekly))"
+        case let (.some(short), .none):
+            return "5 小时剩余 \(percent(short))"
+        case let (.none, .some(weekly)):
+            return "本周剩余 \(percent(weekly))"
+        case (.none, .none):
+            return nil
+        }
+    }
+
+    private func percent(_ window: UsageWindow) -> String {
+        "\(Int(window.remainingPercent.rounded()))%"
     }
 
     private var statusColor: Color {

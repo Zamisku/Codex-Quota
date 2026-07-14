@@ -51,7 +51,7 @@ struct CodexQuotaWidget: Widget {
                 .widgetURL(URL(string: "codexquota://refresh"))
         }
         .configurationDisplayName("Codex Quota")
-        .description("在桌面查看 Codex 5 小时与每周额度。")
+        .description("在桌面查看 Codex 每周额度，并自动兼容短周期额度。")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
@@ -62,9 +62,9 @@ struct QuotaWidgetView: View {
 
     var body: some View {
         Group {
-            if let short = entry.snapshot.shortWindow {
-                if family == .systemMedium { mediumContent(short: short) }
-                else { smallContent(short: short) }
+            if let primary = entry.snapshot.primaryWindow {
+                if family == .systemMedium { mediumContent(primary: primary) }
+                else { smallContent(primary: primary) }
             } else {
                 failureContent
             }
@@ -73,27 +73,27 @@ struct QuotaWidgetView: View {
         .foregroundStyle(WidgetPalette.primaryText)
     }
 
-    private func smallContent(short: UsageWindow) -> some View {
+    private func smallContent(primary: UsageWindow) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             header(showsPlan: false)
             Spacer(minLength: 8)
-            Text("5H REMAINING")
+            Text(entry.snapshot.primaryWindowKind == .short ? "5H REMAINING" : "WEEKLY REMAINING")
                 .font(.system(size: 9, weight: .bold, design: .rounded))
                 .tracking(1.2)
                 .foregroundStyle(WidgetPalette.secondaryText)
             HStack(alignment: .lastTextBaseline, spacing: 2) {
-                Text("\(Int(short.remainingPercent.rounded()))")
+                Text("\(Int(primary.remainingPercent.rounded()))")
                     .font(.system(size: 45, weight: .semibold, design: .rounded))
                     .monospacedDigit()
                 Text("%")
                     .font(.system(size: 14, weight: .bold, design: .rounded))
             }
             .privacySensitive()
-            QuotaBar(value: short.remainingPercent)
+            QuotaBar(value: primary.remainingPercent)
                 .padding(.top, 7)
             Spacer(minLength: 9)
             HStack {
-                Label("周 \(weeklyPercent)", systemImage: "calendar")
+                smallFooter(primary: primary)
                 Spacer()
                 Text(entry.snapshot.updatedAt, style: .time)
             }
@@ -102,7 +102,7 @@ struct QuotaWidgetView: View {
         }
     }
 
-    private func mediumContent(short: UsageWindow) -> some View {
+    private func mediumContent(primary: UsageWindow) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             header(showsPlan: true)
                 .fixedSize(horizontal: false, vertical: true)
@@ -110,23 +110,32 @@ struct QuotaWidgetView: View {
             Spacer(minLength: 4)
             HStack(alignment: .center, spacing: 14) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("5 小时剩余")
+                    Text(entry.snapshot.primaryWindowKind == .short ? "5 小时剩余" : "本周剩余")
                         .font(.system(size: 9, weight: .semibold, design: .rounded))
                         .foregroundStyle(WidgetPalette.secondaryText)
                     HStack(alignment: .lastTextBaseline, spacing: 2) {
-                        Text("\(Int(short.remainingPercent.rounded()))")
+                        Text("\(Int(primary.remainingPercent.rounded()))")
                             .font(.system(size: 32, weight: .semibold, design: .rounded))
                             .monospacedDigit()
                         Text("%").font(.system(size: 11, weight: .bold, design: .rounded))
                     }
                     .privacySensitive()
-                    QuotaBar(value: short.remainingPercent)
-                    resetLabel(short.resetsAt)
+                    QuotaBar(value: primary.remainingPercent)
+                    resetLabel(primary.resetsAt)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 VStack(alignment: .leading, spacing: 6) {
-                    metric(title: "本周剩余", value: weeklyPercent, icon: "calendar")
+                    if entry.snapshot.primaryWindowKind == .short,
+                       let weekly = entry.snapshot.weeklyWindow {
+                        metric(title: "本周剩余", value: percent(weekly), icon: "calendar")
+                    } else {
+                        metric(
+                            title: "额度周期",
+                            value: entry.snapshot.primaryWindowKind == .short ? "5 小时" : "每周",
+                            icon: "calendar"
+                        )
+                    }
                     metric(
                         title: "重置额度",
                         value: entry.snapshot.resetCredits.map(String.init) ?? "—",
@@ -159,6 +168,22 @@ struct QuotaWidgetView: View {
             .layoutPriority(2)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    @ViewBuilder
+    private func smallFooter(primary: UsageWindow) -> some View {
+        if entry.snapshot.primaryWindowKind == .short,
+           entry.snapshot.weeklyWindow != nil {
+            Label("周 \(weeklyPercent)", systemImage: "calendar")
+        } else if let reset = primary.resetsAt {
+            Label {
+                Text(reset, style: .relative)
+            } icon: {
+                Image(systemName: "calendar")
+            }
+        } else {
+            Label(entry.snapshot.primaryWindowKind == .short ? "5 小时" : "每周", systemImage: "calendar")
+        }
     }
 
     private func header(showsPlan: Bool) -> some View {
@@ -220,7 +245,11 @@ struct QuotaWidgetView: View {
     }
 
     private var weeklyPercent: String {
-        entry.snapshot.weeklyWindow.map { "\(Int($0.remainingPercent.rounded()))%" } ?? "—"
+        entry.snapshot.weeklyWindow.map(percent) ?? "—"
+    }
+
+    private func percent(_ window: UsageWindow) -> String {
+        "\(Int(window.remainingPercent.rounded()))%"
     }
 
     private var failureContent: some View {
@@ -293,7 +322,7 @@ private struct QuotaWidgetBackground: View {
 
     private var colors: [Color] {
         guard snapshot.status == .ok || snapshot.status == .stale,
-              let value = snapshot.shortWindow?.remainingPercent else {
+              let value = snapshot.primaryWindow?.remainingPercent else {
             return [Color(red: 0.70, green: 0.78, blue: 0.90), Color(red: 0.95, green: 0.72, blue: 0.67)]
         }
         if value <= 15 {

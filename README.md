@@ -30,7 +30,10 @@
   <a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
-Codex Quota keeps your 5-hour and weekly quota visible before a limit interrupts your flow. The native SwiftUI host reads the existing local Codex Desktop sign-in, fetches quota information from fixed ChatGPT compatibility endpoints, and shares only a sanitized snapshot with its sandboxed widget extension. It never stores the access token in the App Group.
+> [!TIP]
+> Is Codex Quota useful in your workflow? [Star the project on GitHub](https://github.com/Zamisku/Codex-Quota) to help more Codex users discover it.
+
+Codex Quota keeps your current weekly quota visible before a limit interrupts your flow. If Codex restores a shorter rolling window, the app detects it from the response and automatically presents it alongside the weekly quota. The native SwiftUI host reads the existing local Codex Desktop sign-in, fetches quota information from fixed ChatGPT compatibility endpoints, and shares only a sanitized snapshot with its sandboxed widget extension. It never stores the access token in the App Group.
 
 > [!IMPORTANT]
 > Codex Quota is an unofficial community project and is not affiliated with or endorsed by OpenAI. The quota endpoints it relies on are internal compatibility endpoints, not a stable public API, and may change without notice.
@@ -38,7 +41,8 @@ Codex Quota keeps your 5-hour and weekly quota visible before a limit interrupts
 ## Why Codex Quota
 
 - Native SwiftUI menu bar app with Small and Medium WidgetKit widgets.
-- Displays 5-hour quota, weekly quota, reset time, plan, and reset credits when available.
+- Displays the current weekly quota, reset time, plan, and reset credits when available.
+- Automatically adds a returned short rolling window without requiring another UI or data migration.
 - Automatic background refresh with stale-data fallback and clear failure states.
 - Manual refresh from the app, menu bar, or widget deep link.
 - Optional launch-at-login support through `SMAppService`.
@@ -54,7 +58,7 @@ Codex Quota keeps your 5-hour and weekly quota visible before a limit interrupts
   <img src="docs/assets/widget-medium.png" width="600" alt="Codex Quota Medium widget showing synthetic example quota data">
 </p>
 
-Small shows the one number you need most. Medium adds weekly quota, reset credits, and the next reset time without turning the desktop into another dashboard. All preview values are synthetic and contain no account data.
+Small shows the most time-sensitive quota currently returned by the service (weekly today). Medium adds reset credits and the next reset time without turning the desktop into another dashboard. The checked-in previews intentionally use synthetic dual-window data to exercise the short-window compatibility path; they contain no account data.
 
 ## Requirements
 

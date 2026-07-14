@@ -16,7 +16,7 @@ struct Codex_QuotaApp: App {
         Window("Codex Quota", id: "main") {
             ContentView(model: model)
                 .frame(minWidth: 530, idealWidth: 530, maxWidth: 530,
-                       minHeight: 450, idealHeight: 450, maxHeight: 450)
+                       minHeight: 480, idealHeight: 480, maxHeight: 480)
                 .onOpenURL { url in
                     guard url.scheme?.lowercased() == "codexquota" else { return }
                     Task { await model.refresh(forceWidgetReload: true) }
@@ -54,6 +54,9 @@ private struct MenuBarContent: View {
             }
         }
         Button("立即刷新") { Task { await model.refresh() } }
+        Divider()
+        Link("在 GitHub 点 Star 支持项目", destination: ProjectLinks.repository)
+        Divider()
         Button("退出 Codex Quota") { NSApp.terminate(nil) }
     }
 }

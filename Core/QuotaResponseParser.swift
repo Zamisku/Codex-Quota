@@ -3,29 +3,47 @@ import Foundation
 
 enum QuotaResponseParser {
     private typealias JSONObject = [String: Any]
+    private struct WindowCandidate {
+        let identifiers: [String]
+        let window: UsageWindow
+    }
+
+    private static let shortWindowNames = [
+        "primary_window", "primaryWindow", "short_window", "shortWindow",
+        "five_hour_window", "fiveHourWindow", "5h", "primary"
+    ]
+    private static let weeklyWindowNames = [
+        "secondary_window", "secondaryWindow", "weekly_window", "weeklyWindow",
+        "week_window", "weekWindow", "weekly", "secondary"
+    ]
+    private static let primaryWindowNames = ["primary_window", "primaryWindow", "primary"]
+    private static let windowArrayNames = ["windows", "limit_windows", "limitWindows", "limits", "buckets"]
 
     static func parse(usageData: Data, creditsData: Data? = nil, now: Date = Date()) throws -> ProviderSnapshot {
         guard let usage = try JSONSerialization.jsonObject(with: usageData) as? JSONObject else {
             throw QuotaFailure.responseChanged
         }
         let rateLimit = dictionary(usage["rate_limit"]) ?? dictionary(usage["rateLimit"]) ?? usage
-        let short = parseWindow(findWindow(
-            in: rateLimit,
-            names: [
-                "primary_window", "primaryWindow", "short_window", "shortWindow",
-                "five_hour_window", "fiveHourWindow", "5h", "primary"
-            ],
+        let candidates = windowCandidates(in: rateLimit)
+        var short = findWindow(
+            in: candidates,
+            names: shortWindowNames,
             expectedSeconds: 18_000
-        ))
-        guard let short else { throw QuotaFailure.missingShortWindow }
-        let weekly = parseWindow(findWindow(
-            in: rateLimit,
-            names: [
-                "secondary_window", "secondaryWindow", "weekly_window", "weeklyWindow",
-                "week_window", "weekWindow", "weekly", "secondary"
-            ],
+        )
+        var weekly = findWindow(
+            in: candidates,
+            names: weeklyWindowNames,
             expectedSeconds: 604_800
-        ))
+        )
+
+        // With the current weekly-only policy, a lone durationless primary window
+        // is ambiguous. Default it to weekly; explicit labels, durations, or a
+        // simultaneous secondary window still restore the legacy short-window path.
+        if weekly == nil, short != nil, isLoneAmbiguousPrimary(candidates) {
+            weekly = short
+            short = nil
+        }
+        guard short != nil || weekly != nil else { throw QuotaFailure.responseChanged }
 
         let embedded = dictionary(usage["rate_limit_reset_credits"])
             ?? dictionary(usage["rateLimitResetCredits"])
@@ -49,24 +67,65 @@ enum QuotaResponseParser {
         )
     }
 
-    private static func findWindow(in value: JSONObject, names: [String], expectedSeconds: UInt64) -> JSONObject? {
-        for name in names {
-            if let candidate = dictionary(value[name]), parseWindow(candidate) != nil { return candidate }
+    private static func windowCandidates(in value: JSONObject) -> [WindowCandidate] {
+        var output: [WindowCandidate] = []
+        for name in shortWindowNames + weeklyWindowNames {
+            guard let candidate = dictionary(value[name]), let window = parseWindow(candidate) else { continue }
+            output.append(WindowCandidate(identifiers: [name], window: window))
         }
-        for key in ["windows", "limit_windows", "limitWindows", "limits", "buckets"] {
+        for key in windowArrayNames {
             guard let items = value[key] as? [Any] else { continue }
             for item in items {
                 guard let candidate = dictionary(item), let window = parseWindow(candidate) else { continue }
-                let durationMatches = expectedSeconds > 0 && difference(window.windowSeconds, expectedSeconds) <= 60
-                let labelMatches = pickString(candidate, keys: ["name", "type", "id", "window", "label"])
-                    .map { label in
-                        let lower = label.lowercased()
-                        return names.contains { lower == $0.lowercased() || lower.contains($0.lowercased()) }
-                    } ?? false
-                if durationMatches || labelMatches { return candidate }
+                let label = pickString(candidate, keys: ["name", "type", "id", "window", "label"])
+                output.append(WindowCandidate(identifiers: label.map { [$0] } ?? [], window: window))
             }
         }
-        return nil
+        return output
+    }
+
+    private static func findWindow(
+        in candidates: [WindowCandidate],
+        names: [String],
+        expectedSeconds: UInt64
+    ) -> UsageWindow? {
+        // Prefer a matching duration attached to the expected semantic name.
+        if let candidate = candidates.first(where: {
+            matchesIdentifier($0, names: names) && matchesDuration($0.window, expectedSeconds: expectedSeconds)
+        }) {
+            return candidate.window
+        }
+
+        // Duration is authoritative even when legacy primary/secondary names swap.
+        if let candidate = candidates.first(where: {
+            matchesDuration($0.window, expectedSeconds: expectedSeconds)
+        }) {
+            return candidate.window
+        }
+
+        // Legacy responses did not always include duration metadata.
+        return candidates.first(where: {
+            $0.window.windowSeconds == 0 && matchesIdentifier($0, names: names)
+        })?.window
+    }
+
+    private static func matchesIdentifier(_ candidate: WindowCandidate, names: [String]) -> Bool {
+        candidate.identifiers.contains { identifier in
+            let lower = identifier.lowercased()
+            return names.contains { lower == $0.lowercased() || lower.contains($0.lowercased()) }
+        }
+    }
+
+    private static func isLoneAmbiguousPrimary(_ candidates: [WindowCandidate]) -> Bool {
+        guard candidates.count == 1, let candidate = candidates.first,
+              candidate.window.windowSeconds == 0 else { return false }
+        return matchesIdentifier(candidate, names: primaryWindowNames)
+    }
+
+    private static func matchesDuration(_ window: UsageWindow, expectedSeconds: UInt64) -> Bool {
+        expectedSeconds > 0
+            && window.windowSeconds > 0
+            && difference(window.windowSeconds, expectedSeconds) <= 60
     }
 
     private static func parseWindow(_ value: JSONObject?) -> UsageWindow? {

@@ -19,6 +19,11 @@ struct UsageWindow: Codable, Equatable, Sendable {
     }
 }
 
+enum UsageWindowKind: Equatable, Sendable {
+    case short
+    case weekly
+}
+
 struct ProviderSnapshot: Codable, Equatable, Sendable {
     let plan: String?
     let shortWindow: UsageWindow?
@@ -44,11 +49,7 @@ struct ProviderSnapshot: Codable, Equatable, Sendable {
 
     static let preview = ProviderSnapshot(
         plan: "PLUS",
-        shortWindow: UsageWindow(
-            remainingPercent: 72,
-            resetsAt: Date().addingTimeInterval(2.5 * 3600),
-            windowSeconds: 18_000
-        ),
+        shortWindow: nil,
         weeklyWindow: UsageWindow(
             remainingPercent: 84,
             resetsAt: Date().addingTimeInterval(4 * 86_400),
@@ -60,6 +61,18 @@ struct ProviderSnapshot: Codable, Equatable, Sendable {
         status: .ok,
         failure: nil
     )
+
+    /// The most time-sensitive quota window currently returned by the service.
+    /// A restored short window automatically takes priority over the weekly window.
+    var primaryWindow: UsageWindow? { shortWindow ?? weeklyWindow }
+
+    var primaryWindowKind: UsageWindowKind? {
+        if shortWindow != nil { return .short }
+        if weeklyWindow != nil { return .weekly }
+        return nil
+    }
+
+    var hasUsageWindow: Bool { primaryWindow != nil }
 
     func markedStale(with failure: QuotaFailure) -> ProviderSnapshot {
         ProviderSnapshot(
@@ -92,6 +105,7 @@ enum QuotaFailure: String, Error, Codable, Equatable, Sendable {
     case rateLimited
     case serviceUnavailable
     case responseChanged
+    // Kept so snapshots written by older releases remain decodable.
     case missingShortWindow
 
     var isAuthenticationFailure: Bool {

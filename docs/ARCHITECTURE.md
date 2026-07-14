@@ -59,7 +59,7 @@ The usage request is required. The reset-credit request is optional so a failure
 
 ## Defensive parsing
 
-`Core/QuotaResponseParser.swift` accepts a bounded set of known response spellings and shapes. It normalizes percentage and ratio representations, rejects booleans as numeric values, and requires a valid short quota window.
+`Core/QuotaResponseParser.swift` accepts a bounded set of known response spellings and shapes. It normalizes percentage and ratio representations, rejects booleans as numeric values, and requires at least one recognized quota window. Window duration takes precedence over legacy `primary`/`secondary` field names, so a seven-day window moved into `primary_window` is still classified as weekly. A lone durationless `primary_window` is inherently ambiguous and defaults to weekly under the current policy; explicit duration, a short-window label, or simultaneous primary/secondary windows restores the short-window classification automatically. Weekly-only, short-only, and dual-window responses share the same snapshot schema.
 
 When the response cannot be interpreted safely, the parser returns a typed failure instead of inventing values. Parser behavior is covered by synthetic fixtures in `Codex-QuotaTests/QuotaResponseParserTests.swift`.
 

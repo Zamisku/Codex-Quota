@@ -19,4 +19,4 @@ Regenerate the three final promotional images from the repository root:
 xcrun swift scripts/render-promo.swift
 ```
 
-The preview values are fictional and do not contain an access token, account identifier, prompt, usage history, or other user data.
+The preview values are fictional and do not contain an access token, account identifier, prompt, usage history, or other user data. The widget images intentionally use a dual-window fixture to document the automatic compatibility path if Codex restores a short rolling limit; the current weekly-only response is the default app preview.

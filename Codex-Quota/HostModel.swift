@@ -24,8 +24,13 @@ final class HostModel: ObservableObject {
     }
 
     var menuStatus: String {
-        guard let short = snapshot?.shortWindow else { return "额度暂不可用" }
-        return "5 小时剩余 \(Int(short.remainingPercent.rounded()))%"
+        if let short = snapshot?.shortWindow {
+            return "5 小时剩余 \(Int(short.remainingPercent.rounded()))%"
+        }
+        if let weekly = snapshot?.weeklyWindow {
+            return "本周剩余 \(Int(weekly.remainingPercent.rounded()))%"
+        }
+        return "额度暂不可用"
     }
 
     func start() {
@@ -51,7 +56,7 @@ final class HostModel: ObservableObject {
         if incoming.status != .ok,
            !incoming.failure.isAuthenticationFailure,
            let current = SharedSnapshotStore.load(),
-           current.shortWindow != nil,
+           current.hasUsageWindow,
            Date().timeIntervalSince(current.updatedAt) < 30 * 60,
            let failure = incoming.failure {
             value = current.markedStale(with: failure)
@@ -63,7 +68,10 @@ final class HostModel: ObservableObject {
             snapshot = value
             let now = Date()
             let reloadIsDue = lastWidgetReloadAt.map { now.timeIntervalSince($0) >= 30 * 60 } ?? true
-            if forceWidgetReload || reloadIsDue || previous?.status != value.status {
+            let windowAvailabilityChanged =
+                (previous?.shortWindow != nil) != (value.shortWindow != nil)
+                || (previous?.weeklyWindow != nil) != (value.weeklyWindow != nil)
+            if forceWidgetReload || reloadIsDue || previous?.status != value.status || windowAvailabilityChanged {
                 WidgetCenter.shared.reloadTimelines(ofKind: CodexQuotaWidgetKind.value)
                 lastWidgetReloadAt = now
             }

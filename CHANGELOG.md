@@ -6,7 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-No user-facing changes yet.
+### Changed
+
+- Made weekly quota the current default presentation while automatically restoring the short-window UI whenever the service returns one again.
+- Classified quota windows by duration before legacy field names, and accepted weekly-only, short-only, and dual-window responses.
 
 ## [2.1.0] - 2026-07-13
 
