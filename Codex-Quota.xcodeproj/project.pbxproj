@@ -69,10 +69,10 @@
 		96110E556936EC56D0926EEC /* LICENSE */ = {isa = PBXFileReference; path = LICENSE; sourceTree = "<group>"; };
 		9E1D15DB0F78AE08E8FF7BC4 /* Codex-QuotaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Codex-QuotaTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2E072BFB2E6B7F3E710689C /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
+		A5E17EF1789FE90960BE29AC /* Codex Quota.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Codex Quota.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C022DA14AA4316FBCF5F081B /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		C59E278E861A7F78A23D9F12 /* SharedSnapshotStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedSnapshotStore.swift; sourceTree = "<group>"; };
 		C7E975184B3CF5CDDEC95523 /* AuthLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthLoader.swift; sourceTree = "<group>"; };
-		CEC61EF72020E202886AB6FA /* Codex-Quota.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Codex-Quota.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D170EEC59AFA6788FD19B419 /* CodexQuotaWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexQuotaWidget.swift; sourceTree = "<group>"; };
 		D3887C58AA5552C39C2E2DC9 /* Codex_QuotaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Codex_QuotaApp.swift; sourceTree = "<group>"; };
 		D90EFD4E7F4907954FC97F03 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -108,7 +108,7 @@
 		158D4C324F9F3DA7018894A9 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				CEC61EF72020E202886AB6FA /* Codex-Quota.app */,
+				A5E17EF1789FE90960BE29AC /* Codex Quota.app */,
 				9E1D15DB0F78AE08E8FF7BC4 /* Codex-QuotaTests.xctest */,
 				2558900CF77B06D765823D1B /* CodexQuotaWidgetExtension.appex */,
 			);
@@ -220,7 +220,7 @@
 			packageProductDependencies = (
 			);
 			productName = "Codex-Quota";
-			productReference = CEC61EF72020E202886AB6FA /* Codex-Quota.app */;
+			productReference = A5E17EF1789FE90960BE29AC /* Codex Quota.app */;
 			productType = "com.apple.product-type.application";
 		};
 		BD712DC819621307F1B2AF7E /* Codex-QuotaTests */ = {
@@ -459,7 +459,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = X9MB8SQZHF;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -474,7 +474,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.1.0;
+				MARKETING_VERSION = 2.2.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = NO;
@@ -539,7 +539,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = X9MB8SQZHF;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -560,7 +560,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.1.0;
+				MARKETING_VERSION = 2.2.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = NO;

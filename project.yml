@@ -14,13 +14,14 @@ settings:
     CODE_SIGN_STYLE: Automatic
     DEVELOPMENT_TEAM: X9MB8SQZHF
     ENABLE_HARDENED_RUNTIME: YES
-    CURRENT_PROJECT_VERSION: 4
-    MARKETING_VERSION: 2.1.0
+    CURRENT_PROJECT_VERSION: 5
+    MARKETING_VERSION: 2.2.0
 
 targets:
   Codex-Quota:
     type: application
     platform: macOS
+    productName: "Codex Quota"
     sources:
       - path: Codex-Quota
         excludes:

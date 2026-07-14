@@ -6,10 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+No user-facing changes yet.
+
+## [2.2.0] - 2026-07-14
+
+### Added
+
+- Added lightweight GitHub Star links to the host window, menu bar, and project documentation.
+
 ### Changed
 
 - Made weekly quota the current default presentation while automatically restoring the short-window UI whenever the service returns one again.
 - Classified quota windows by duration before legacy field names, and accepted weekly-only, short-only, and dual-window responses.
+- Updated the host, menu bar, widgets, bilingual documentation, and promotional artwork for adaptive quota windows.
 
 ## [2.1.0] - 2026-07-13
 
@@ -53,6 +62,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Kept token access and authenticated networking out of the sandboxed widget extension.
 - Stored only a sanitized snapshot in the App Group.
 
-[Unreleased]: https://github.com/Zamisku/Codex-Quota/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/Zamisku/Codex-Quota/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/Zamisku/Codex-Quota/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/Zamisku/Codex-Quota/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/Zamisku/Codex-Quota/releases/tag/v2.0.0
